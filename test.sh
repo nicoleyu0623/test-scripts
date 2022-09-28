@@ -9,3 +9,11 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 echo "Where to deploy: $desk"
+
+
+
+kafkacat -C -b $url -e -t $topic
+-X sasl.mechanism=SCRAM-SHA-512
+-X security.protocol=SASL_SSL
+-X sasl.username=login
+-X sasl.password=pass
