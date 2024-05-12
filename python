@@ -1,0 +1,69 @@
+
+# Set a non-interactive frontend
+ENV DEBIAN_FRONTEND noninteractive
+
+# Install dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libffi-dev \
+    libbz2-dev \
+    liblzma-dev \
+    libxml2-dev \
+    libxmlsec1-dev \
+    libssl-dev \    
+    zlib1g-dev \    
+    wget \
+    python-dev \
+    nano \
+    openssh-client \
+    lm-sensors \
+    software-properties-common
+
+# Download Python 3.10, compile it, and install
+RUN cd /tmp && \
+    wget https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz && \
+    tar -xzf Python-3.10.0.tgz && \
+    cd Python-3.10.0 && \
+    ./configure --enable-optimizations && \
+    make -j 18 && \
+    make altinstall
+
+# Remove the Python source and temporary files
+RUN rm -rf /tmp/Python-3.10.0 /tmp/Python-3.10.0.tgz
+
+
+
+ADD http://example.com/PyYAML-5.4.1-cp312-cp312-manylinux1_x86_64.whl /tmp
+RUN python3.12 -m pip install /tmp/PyYAML-5.4.1-cp312-cp312-manylinux1_x86_64.whl
+
+
+RUN apt-get update 
+RUN apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev \
+    libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
+    xz-utils tk-dev libffi-dev liblzma-dev
+RUN wget -q https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz && \
+    tar -xzf Python-3.10.0.tgz && cd Python-3.10.0 && \
+    CFLAGS="-Wformat" ./configure --prefix=/usr/local/ --enable-shared > /dev/null && \
+    make -j8 > /dev/null && make altinstall > /dev/null && cd ../ && rm Python-3.10.0.tgz
+
+
+# -------
+
+
+
+# Update pip for Python 3.10
+RUN python3.10 -m ensurepip && \
+    python3.10 -m pip install --upgrade pip
+
+# Set Python 3.10 as the default Python version
+RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10 1 && \
+    update-alternatives --set python /usr/local/bin/python3.10 && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.10 1 && \
+    update-alternatives --set python3 /usr/local/bin/python3.10
+
+
+
+PyYAML-6.0.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (725.0 kB)
+
+
+
