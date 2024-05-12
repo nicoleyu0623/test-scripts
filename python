@@ -51,6 +51,10 @@ RUN ln -sf /usr/local/bin/python3.10 /usr/local/bin/python3 && \
     ln -sf /usr/local/bin/python3.10 /usr/local/bin/python
 ENV PATH="/usr/local/bin:${PATH}"
 
+RUN curl -L http://pyyaml.org/download/pyyaml/PyYAML-3.12.tar.gz | tar zxv -C /tmp \
+    && cd /tmp/PyYAML-3.12 \
+    && python setup.py --without-libyaml install 
+
 
 # -------
 
