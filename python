@@ -46,6 +46,11 @@ RUN wget -q https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz && \
     CFLAGS="-Wformat" ./configure --prefix=/usr/local/ --enable-shared > /dev/null && \
     make -j8 > /dev/null && make altinstall > /dev/null && cd ../ && rm Python-3.10.0.tgz
 
+# set path
+RUN ln -sf /usr/local/bin/python3.10 /usr/local/bin/python3 && \
+    ln -sf /usr/local/bin/python3.10 /usr/local/bin/python
+ENV PATH="/usr/local/bin:${PATH}"
+
 
 # -------
 
