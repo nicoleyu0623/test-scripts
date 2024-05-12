@@ -1,6 +1,17 @@
+alias ksh='ksh'
+ksh() {
+    kubectl exec -ti "$@" -- bash
+}
 
-alias kubedelforce='kubectl delete po $1 --grace-period=0 --force'
-kubedelforce <pod-name>
+
+alias kd='kubedelforce_fun'
+kubedelforce_fun() {
+    if [[ "$2" == "-n" ]] && [[ -n "$3" ]]; then
+        kubectl delete po "$1" -n "$3" --grace-period=0 --force
+    else
+        kubectl delete po "$1" --grace-period=0 --force
+    fi
+}
 
 
 
