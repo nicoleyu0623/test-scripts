@@ -23,3 +23,9 @@ RUN tar zxvf /tmp/PyYAML-5.3.1.tar.gz -C /tmp && \
     cd /tmp/PyYAML-5.3.1 \
     && python setup.py --without-libyaml install \
     && rm -rf /tmp/PyYAML-5.3.1 /tmp/PyYAML-5.3.1.tar.gz
+
+
+# docker build -t my-python-app .
+
+# docker run --rm -it my-python-app /bin/bash
+
