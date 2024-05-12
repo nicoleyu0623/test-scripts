@@ -1,4 +1,9 @@
 
+alias kubedelforce='kubectl delete po $1 --grace-period=0 --force'
+kubedelforce <pod-name>
+
+
+
 # Set a non-interactive frontend
 ENV DEBIAN_FRONTEND noninteractive
 
