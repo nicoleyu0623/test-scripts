@@ -1,16 +1,10 @@
 #!/bin/bash
 
-# 获取所有 PV 信息
-kubectl get pv -o json > pv.json
+# 获取所有 EBS 相关的 PV 和 Volume ID
+kubectl get pv -o json | jq -r '.items[] | select(.spec.awsElasticBlockStore) | "\(.metadata.name) \(.spec.awsElasticBlockStore.volumeID)"' > pv_volumes.txt
 
-# 提取 EBS 卷 ID 和 PV 名称
-jq -r '.items[] | select(.spec.awsElasticBlockStore) | "\(.metadata.name) \(.spec.awsElasticBlockStore.volumeID)"' pv.json > pv_volumes.txt
-
-# 获取所有 PVC 信息
-kubectl get pvc --all-namespaces -o json > pvc.json
-
-# 提取 PVC 名称、命名空间和绑定的 PV 名称
-jq -r '.items[] | "\(.metadata.namespace) \(.metadata.name) \(.spec.volumeName)"' pvc.json > pvc_bindings.txt
+# 获取所有 PVC 及其关联的 PV
+kubectl get pvc --all-namespaces -o json | jq -r '.items[] | "\(.metadata.namespace) \(.metadata.name) \(.spec.volumeName)"' > pvc_bindings.txt
 
 # 查询每个 EBS 卷的可用区
 echo "PV_NAME PVC_NAMESPACE PVC_NAME AVAILABILITY_ZONE"
