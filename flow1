@@ -1,0 +1,109 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: copy-pod-
+spec:
+  entrypoint: main
+  templates:
+  - name: main
+    steps:
+    - - name: capture-pod-definition
+        template: capture-pod
+    - - name: create-pvc-from-snapshot
+        template: create-pvc
+    - - name: modify-pod-definition
+        template: modify-pod
+        arguments:
+          parameters:
+          - name: pod-definition
+            value: "{{steps.capture-pod-definition.outputs.parameters.pod-definition}}"
+          - name: pvc-name
+            value: "new-pvc-from-snapshot"
+    - - name: create-new-pod
+        template: create-pod
+        arguments:
+          parameters:
+          - name: new-pod-definition
+            value: "{{steps.modify-pod-definition.outputs.parameters.new-pod-definition}}"
+
+  - name: capture-pod
+    script:
+      image: bitnami/kubectl:latest
+      command: [sh, -c]
+      source: |
+        pod_name="your-pod-name"
+        namespace="your-namespace"
+        kubectl get pod ${pod_name} -n ${namespace} -o json > /tmp/pod.json
+        cat /tmp/pod.json
+      outputs:
+        parameters:
+        - name: pod-definition
+          valueFrom:
+            path: /tmp/pod.json
+
+  - name: create-pvc
+    script:
+      image: bitnami/kubectl:latest
+      command: [sh, -c]
+      source: |
+        pvc_name="new-pvc-from-snapshot"
+        snapshot_name="your-snapshot-name"
+        namespace="your-namespace"
+        cat <<EOF | kubectl apply -f -
+        apiVersion: v1
+        kind: PersistentVolumeClaim
+        metadata:
+          name: ${pvc_name}
+          namespace: ${namespace}
+        spec:
+          dataSource:
+            name: ${snapshot_name}
+            kind: VolumeSnapshot
+            apiGroup: snapshot.storage.k8s.io
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+        EOF
+
+  - name: modify-pod
+    script:
+      image: python:3.9
+      command: [python, -c]
+      source: |
+        import json
+        import sys
+
+        pod_definition = json.loads(sys.argv[1])
+        new_pvc_name = sys.argv[2]
+
+        # Assuming the volume mount and volume name in the pod spec
+        volume_name = "your-volume-name"
+        for volume in pod_definition['spec']['volumes']:
+            if volume['name'] == volume_name:
+                volume['persistentVolumeClaim']['claimName'] = new_pvc_name
+
+        with open("/tmp/new-pod.json", "w") as f:
+            json.dump(pod_definition, f)
+
+        print(json.dumps(pod_definition))
+      arguments:
+        parameters:
+        - name: pod-definition
+        - name: pvc-name
+      outputs:
+        parameters:
+        - name: new-pod-definition
+          valueFrom:
+            path: /tmp/new-pod.json
+
+  - name: create-pod
+    script:
+      image: bitnami/kubectl:latest
+      command: [sh, -c]
+      source: |
+        echo '{{inputs.parameters.new-pod-definition}}' | kubectl apply -f -
+      inputs:
+        parameters:
+        - name: new-pod-definition
