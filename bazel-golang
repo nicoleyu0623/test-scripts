@@ -11,6 +11,7 @@ http_archive(
     ],
 )
 
+
 http_archive(
     name = "bazel_gazelle",
     integrity = "sha256-MpOL2hbmcABjA1R5Bj2dJMYO2o15/Uc5Vj9Q0zHLMgk=",
@@ -20,17 +21,15 @@ http_archive(
     ],
 )
 
+
+
 # Initialize the Go toolchain and Gazelle
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
 go_rules_dependencies()
-
 go_register_toolchains(version = "1.22.4")
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
-load("//third_party:third_party.bzl", "load_go_dependencies")
-
-# gazelle:repository_macro //third_party/third_party.bzl%load_go_dependencies
-load_go_dependencies()
 
 gazelle_dependencies()
+
